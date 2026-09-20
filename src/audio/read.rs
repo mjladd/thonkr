@@ -340,11 +340,12 @@ fn decode_pcm(path: &Path, raw: &[u8], encoding: Encoding) -> Result<Vec<f32>> {
             out.extend(raw.iter().map(|b| (f32::from(*b) - 128.0) / 128.0));
         }
         Encoding::Float32 { big_endian } => {
-            out.extend(raw.as_chunks::<4>().0.iter().map(|b| {
+            out.extend(raw.chunks_exact(4).map(|c| {
+                let b: [u8; 4] = c.try_into().expect("chunks_exact yields four bytes");
                 if big_endian {
-                    f32::from_be_bytes(*b)
+                    f32::from_be_bytes(b)
                 } else {
-                    f32::from_le_bytes(*b)
+                    f32::from_le_bytes(b)
                 }
             }));
         }
@@ -355,11 +356,11 @@ fn decode_pcm(path: &Path, raw: &[u8], encoding: Encoding) -> Result<Vec<f32>> {
             width: 2,
             big_endian,
         } => {
-            out.extend(raw.as_chunks::<2>().0.iter().map(|b| {
+            out.extend(raw.chunks_exact(2).map(|c| {
                 let v = if big_endian {
-                    i16::from_be_bytes(*b)
+                    i16::from_be_bytes([c[0], c[1]])
                 } else {
-                    i16::from_le_bytes(*b)
+                    i16::from_le_bytes([c[0], c[1]])
                 };
                 f32::from(v) / 32768.0
             }));
@@ -368,7 +369,7 @@ fn decode_pcm(path: &Path, raw: &[u8], encoding: Encoding) -> Result<Vec<f32>> {
             width: 3,
             big_endian,
         } => {
-            out.extend(raw.as_chunks::<3>().0.iter().map(|c| {
+            out.extend(raw.chunks_exact(3).map(|c| {
                 let v = if big_endian {
                     i32::from_be_bytes([0, c[0], c[1], c[2]])
                 } else {
@@ -382,11 +383,12 @@ fn decode_pcm(path: &Path, raw: &[u8], encoding: Encoding) -> Result<Vec<f32>> {
             width: 4,
             big_endian,
         } => {
-            out.extend(raw.as_chunks::<4>().0.iter().map(|b| {
+            out.extend(raw.chunks_exact(4).map(|c| {
+                let b: [u8; 4] = c.try_into().expect("chunks_exact yields four bytes");
                 let v = if big_endian {
-                    i32::from_be_bytes(*b)
+                    i32::from_be_bytes(b)
                 } else {
-                    i32::from_le_bytes(*b)
+                    i32::from_le_bytes(b)
                 };
                 v as f32 / 2_147_483_648.0
             }));

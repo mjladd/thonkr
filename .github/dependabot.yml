@@ -1,0 +1,25 @@
+# Keep the dependencies and the actions current.
+#
+# The actions in this repository drifted far enough to be forced off a
+# deprecated Node.js runtime before anyone noticed, which is the thing this
+# file exists to prevent.
+version: 2
+updates:
+  - package-ecosystem: cargo
+    directory: /
+    schedule:
+      interval: weekly
+    open-pull-requests-limit: 5
+    groups:
+      # One pull request for the routine bumps, so the noise stays low and a
+      # major version still arrives on its own for a proper look.
+      minor-and-patch:
+        update-types: [minor, patch]
+
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly
+    groups:
+      actions:
+        patterns: ["*"]

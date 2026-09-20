@@ -9,7 +9,7 @@ use std::sync::atomic::{AtomicBool, Ordering};
 use std::sync::Arc;
 use std::time::Instant;
 
-use crate::audio::write::StreamWriter;
+use crate::audio::write::{StreamWriter, MAX_FRAMES};
 use crate::curve::Rand;
 use crate::engine::Thonk;
 use crate::score::ScoreSpec;
@@ -138,6 +138,22 @@ impl Session {
         }
         let rate = settings.rate.unwrap_or(in_rate);
         let duration = settings.duration.unwrap_or(score.duration);
+
+        // Refused here, before a file is opened, so the answer arrives in a
+        // second rather than after hours of rendering into a file that no
+        // player will read to the end.
+        let frames = (duration * f64::from(rate)).ceil();
+        if frames > MAX_FRAMES as f64 {
+            let longest = MAX_FRAMES as f64 / f64::from(rate.max(1));
+            return Err(Error::other(format!(
+                "{} at {rate} Hz needs {frames:.0} frames. A sound file cannot \
+                 hold more than {MAX_FRAMES}, because AIFF and WAV store their \
+                 sizes in 32 bits. The longest render at this rate is {}. Use a \
+                 shorter --duration, or a lower --rate.",
+                crate::hms(duration),
+                crate::hms(longest)
+            )));
+        }
         let seed = settings.seed.unwrap_or_else(random_seed);
         let peak = source.iter().fold(0.0f32, |m, v| m.max(v.abs()));
         let source_len = source.len();
@@ -506,6 +522,49 @@ mod tests {
             at_rail(&clip),
             at_rail(&wrap)
         );
+    }
+
+    #[test]
+    fn a_render_too_long_for_the_file_format_is_refused_up_front() {
+        let score = built_in("flowing").unwrap();
+        let path = scratch("toolong.aiff");
+
+        // Seven hours at 44100 Hz needs more frames than a 32-bit size holds.
+        let err = match Session::new(source(), 44100, &path, &score, settings(7.0 * 3600.0, 1)) {
+            Err(e) => e.to_string(),
+            Ok(_) => panic!("a seven hour render at 44100 Hz must be refused"),
+        };
+        assert!(err.contains("32 bits"), "the reason must be given: {err}");
+        assert!(
+            err.contains("6:45:47"),
+            "the longest render must be named: {err}"
+        );
+        assert!(
+            err.contains("--duration"),
+            "a way out must be offered: {err}"
+        );
+        assert!(
+            !path.exists(),
+            "no file should be created for a refused render"
+        );
+
+        // Six hours fits, and a lower rate buys more time.
+        assert!(Session::new(
+            source(),
+            44100,
+            &scratch("ok.aiff"),
+            &score,
+            settings(6.0 * 3600.0, 1)
+        )
+        .is_ok());
+        assert!(Session::new(
+            source(),
+            22050,
+            &scratch("ok2.aiff"),
+            &score,
+            settings(7.0 * 3600.0, 1)
+        )
+        .is_ok());
     }
 
     #[test]
