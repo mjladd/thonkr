@@ -85,14 +85,19 @@ def _ieee754_80_encode(value):
     return struct.pack(">HLL", sign | (expon + 1), himant, lomant)
 
 
-def _pcm_to_float(raw, sampwidth, big_endian, float_fmt=False):
-    """Convert raw interleaved PCM bytes to a float32 array in [-1, 1)."""
+def _pcm_to_float(raw, sampwidth, big_endian, float_fmt=False, unsigned8=False):
+    """Convert raw interleaved PCM bytes to a float32 array in [-1, 1).
+
+    8-bit is signed in AIFF and unsigned in WAV, so the caller says which.
+    """
     if float_fmt:
         dt = np.dtype(">f4" if big_endian else "<f4")
         return np.frombuffer(raw, dtype=dt).astype(np.float32)
     if sampwidth == 1:
-        # AIFF 8-bit is signed, WAV 8-bit is unsigned; AIFF is the common case
-        a = np.frombuffer(raw, dtype=np.int8).astype(np.float32)
+        if unsigned8:
+            a = np.frombuffer(raw, dtype=np.uint8).astype(np.float32) - 128.0
+        else:
+            a = np.frombuffer(raw, dtype=np.int8).astype(np.float32)
         return a / 128.0
     if sampwidth == 2:
         dt = np.dtype(">i2" if big_endian else "<i2")
@@ -196,7 +201,7 @@ def _read_wav(fh):
         raise ValueError("unsupported WAV encoding (format tag %d)" % tag)
     width = (bits + 7) // 8
     usable = (len(data) // (width * channels)) * width * channels
-    samples = _pcm_to_float(data[:usable], width, False, tag == 3)
+    samples = _pcm_to_float(data[:usable], width, False, tag == 3, unsigned8=True)
     return samples, rate, channels
 
 

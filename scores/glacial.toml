@@ -1,0 +1,21 @@
+# Almost nothing, very slowly. Long soft grains, wide silences, everything
+# falling. Written for an hour; leave it running.
+#
+#   thonkr in.aiff out.aiff --score-file scores/glacial.toml --score glacial --autogain
+
+[scores.glacial]
+description = "almost nothing, very slowly, everything falling"
+duration = 3600
+spread = 0.7
+voices = 3
+
+# A handful of grains a second at most, and often far less.
+density   = { range = [0.15, 5.0],  seg = [40.0, 180.0], rand = [0.08, 0.25] }
+# Long grains, so the input keeps its character rather than becoming texture.
+length    = { range = [0.060, 0.100], seg = [40.0, 180.0], rand = [0.08, 0.20] }
+# Fully faded at both ends. Nothing here should start abruptly.
+attack    = { range = [0.40, 0.50], seg = [40.0, 180.0], rand = [0.05, 0.08] }
+position  = { range = [0.0, 1.0],   seg = [30.0, 150.0], rand = [0.08, 0.04] }
+# Two octaves down at the bottom.
+transpose = { range = [-24.0, 0.0], seg = [40.0, 180.0], rand = [0.06, 0.06] }
+balance   = { range = [0.0, 1.0],   seg = [20.0, 90.0],  rand = [0.25, 0.30] }

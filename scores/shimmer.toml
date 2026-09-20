@@ -1,0 +1,20 @@
+# Short bright grains, high and moving. The opposite of glacial: everything
+# rises, nothing lasts. Try it on something with a hard transient in it.
+#
+#   thonkr in.aiff out.aiff --score-file scores/shimmer.toml --score shimmer --autogain
+
+[scores.shimmer]
+description = "short bright grains, high and always moving"
+duration = 900
+spread = 0.9
+voices = 4
+
+density   = { range = [200.0, 2400.0], seg = [1.0, 12.0], rand = [2.5, 0.25] }
+# Very short grains. At this length the grain rate is most of what you hear.
+length    = { range = [0.004, 0.022],  seg = [1.0, 12.0], rand = [2.0, 0.30] }
+# A quick fade, enough to stop the clicking without dulling the attack.
+attack    = { range = [0.10, 0.35],    seg = [2.0, 15.0], rand = [1.5, 0.20] }
+position  = { range = [0.0, 1.0],      seg = [1.0, 10.0], rand = [2.0, 0.15] }
+# Up to two octaves up, never down.
+transpose = { range = [0.0, 24.0],     seg = [2.0, 16.0], rand = [1.0, 0.18] }
+balance   = { range = [0.0, 1.0],      seg = [0.5, 6.0],  rand = [4.0, 0.35] }
