@@ -239,4 +239,13 @@ thOnk_0+2 was written by Arjen van der Schoot, with early help from Peter
 Bakker, and its interface was designed by =cw4t7abs (antiorp). The original was
 freeware. This reimplementation carries no code from it.
 
+`thonk.py` was written by
+[Deep-Fried-Unicorn](https://github.com/Deep-Fried-Unicorn), and `thonkr` is a
+translation of that work into Rust. Reading the synthesis model out of a manual
+for software nobody can run any more, and getting it to sound right, is the
+part of this that took real listening. The scores, the two-layer parameter
+model, the streaming writer and the header repair are all that program's
+design. Thank you for writing it, and for leaving it where someone else could
+pick it up.
+
 MIT licensed. See `LICENSE`.
