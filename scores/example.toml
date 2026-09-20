@@ -1,0 +1,74 @@
+# A worked example of a thonkr score file, with every field explained.
+#
+#   thonkr in.aiff out.aiff --score-file scores/example.toml --score example
+#
+# Start your own from any score you already like:
+#
+#   thonkr --dump-score sparse > mine.toml
+#
+# Then edit the name on the first line and change what you want. Every field
+# below is optional. Anything you leave out is taken from the score this one
+# replaces, or from `flowing` if the name is new. A score can be two lines.
+
+# The table name is what you pass to --score.
+[scores.example]
+
+# One line shown by --list-scores.
+description = "a worked example; copy it and change the numbers"
+
+# How long a render runs when --duration is absent, in seconds.
+duration = 600
+
+# false: grains are taken from wherever `position` points.
+# true:  in-file time walks the input from start to end across the render, and
+#        `position` becomes local jitter on top of that. This is what the
+#        stretch1 and stretch5 scores do.
+stretch = false
+
+# How far each grain is scattered left and right of where `balance` puts it,
+# from 0 to 1. --spread overrides this.
+spread = 0.45
+
+# How many voices the transposer runs, from 1 to 16. Each voice holds its own
+# drifting interval, and every grain is assigned to one of them by weight.
+voices = 4
+
+# Each parameter below takes three pairs.
+#
+#   range  the low and high bound the parameter moves between
+#   seg    the shortest and longest gap between breakpoints, in seconds.
+#          Small numbers move fast. Large numbers drift.
+#   rand   a band-limited randomizer riding on top of the curve: its rate in
+#          hertz, then its depth as a fraction of the range. Either at zero
+#          turns it off.
+#
+# Any pair you leave out keeps the value it had, so this is a whole parameter:
+#
+#   density = { range = [1.0, 400.0] }
+
+# Where in the input file a grain is taken from, 0 to 1.
+position  = { range = [0.0, 1.0],    seg = [6.0, 45.0],  rand = [0.4, 0.05] }
+
+# Grains written per second. The manual's ceiling is 6000.
+density   = { range = [4.0, 300.0],  seg = [8.0, 50.0],  rand = [0.7, 0.12] }
+
+# Grain length in seconds, at most 1.0. Short grains sound bright and buzzy,
+# long grains keep the character of the input.
+length    = { range = [0.015, 0.09], seg = [10.0, 55.0], rand = [0.5, 0.15] }
+
+# The faded portion at each end of a grain, 0 to 0.5. At 0.5 the grain is one
+# smooth rise and fall. Near 0 it clicks.
+attack    = { range = [0.18, 0.50],  seg = [12.0, 60.0], rand = [0.3, 0.10] }
+
+# Transposition in semitones. Negative is down.
+transpose = { range = [-12.0, 7.0],  seg = [10.0, 60.0], rand = [0.2, 0.06] }
+
+# Left to right placement, 0 to 1. 0.5 is the middle.
+balance   = { range = [0.1, 0.9],    seg = [4.0, 30.0],  rand = [0.6, 0.20] }
+
+# Every one of these can also be changed for a single run, without a file:
+#
+#   --set density.range=1,400
+#   --set length.seg=2,9
+#   --set balance.rand=3,0.4
+#   --set duration=90  --set spread=0.6  --set voices=3  --set stretch=true

@@ -1,0 +1,462 @@
+[
+ {
+  "name": "flowing",
+  "description": "long arcs, moderate density - the original's patient setting",
+  "duration": 1200.0,
+  "stretch": false,
+  "spread": 0.35,
+  "voices": 4,
+  "position": {
+   "range": [
+    0.0,
+    1.0
+   ],
+   "seg": [
+    6.0,
+    45.0
+   ],
+   "rand": [
+    0.4,
+    0.03
+   ]
+  },
+  "density": {
+   "range": [
+    2.0,
+    250.0
+   ],
+   "seg": [
+    8.0,
+    60.0
+   ],
+   "rand": [
+    0.7,
+    0.1
+   ]
+  },
+  "length": {
+   "range": [
+    0.02,
+    0.1
+   ],
+   "seg": [
+    10.0,
+    60.0
+   ],
+   "rand": [
+    0.5,
+    0.15
+   ]
+  },
+  "attack": {
+   "range": [
+    0.15,
+    0.5
+   ],
+   "seg": [
+    12.0,
+    60.0
+   ],
+   "rand": [
+    0.3,
+    0.1
+   ]
+  },
+  "transpose": {
+   "range": [
+    -12.0,
+    12.0
+   ],
+   "seg": [
+    10.0,
+    60.0
+   ],
+   "rand": [
+    0.2,
+    0.05
+   ]
+  },
+  "balance": {
+   "range": [
+    0.15,
+    0.85
+   ],
+   "seg": [
+    4.0,
+    30.0
+   ],
+   "rand": [
+    0.6,
+    0.2
+   ]
+  }
+ },
+ {
+  "name": "hectic",
+  "description": "dense, fast-shifting, up to 6000 grains a second",
+  "duration": 1200.0,
+  "stretch": false,
+  "spread": 0.8,
+  "voices": 4,
+  "position": {
+   "range": [
+    0.0,
+    1.0
+   ],
+   "seg": [
+    0.4,
+    6.0
+   ],
+   "rand": [
+    3.0,
+    0.12
+   ]
+  },
+  "density": {
+   "range": [
+    40.0,
+    6000.0
+   ],
+   "seg": [
+    0.5,
+    8.0
+   ],
+   "rand": [
+    4.0,
+    0.25
+   ]
+  },
+  "length": {
+   "range": [
+    0.003,
+    0.06
+   ],
+   "seg": [
+    0.5,
+    8.0
+   ],
+   "rand": [
+    3.0,
+    0.3
+   ]
+  },
+  "attack": {
+   "range": [
+    0.05,
+    0.45
+   ],
+   "seg": [
+    1.0,
+    10.0
+   ],
+   "rand": [
+    2.0,
+    0.25
+   ]
+  },
+  "transpose": {
+   "range": [
+    -24.0,
+    24.0
+   ],
+   "seg": [
+    0.8,
+    10.0
+   ],
+   "rand": [
+    1.5,
+    0.2
+   ]
+  },
+  "balance": {
+   "range": [
+    0.0,
+    1.0
+   ],
+   "seg": [
+    0.3,
+    4.0
+   ],
+   "rand": [
+    5.0,
+    0.35
+   ]
+  }
+ },
+ {
+  "name": "sparse",
+  "description": "isolated grains, wide silences, slow drift",
+  "duration": 1200.0,
+  "stretch": false,
+  "spread": 0.5,
+  "voices": 3,
+  "position": {
+   "range": [
+    0.0,
+    1.0
+   ],
+   "seg": [
+    10.0,
+    60.0
+   ],
+   "rand": [
+    0.2,
+    0.05
+   ]
+  },
+  "density": {
+   "range": [
+    0.5,
+    25.0
+   ],
+   "seg": [
+    15.0,
+    90.0
+   ],
+   "rand": [
+    0.3,
+    0.2
+   ]
+  },
+  "length": {
+   "range": [
+    0.04,
+    0.1
+   ],
+   "seg": [
+    15.0,
+    90.0
+   ],
+   "rand": [
+    0.2,
+    0.2
+   ]
+  },
+  "attack": {
+   "range": [
+    0.25,
+    0.5
+   ],
+   "seg": [
+    20.0,
+    90.0
+   ],
+   "rand": [
+    0.2,
+    0.1
+   ]
+  },
+  "transpose": {
+   "range": [
+    -18.0,
+    7.0
+   ],
+   "seg": [
+    15.0,
+    90.0
+   ],
+   "rand": [
+    0.15,
+    0.08
+   ]
+  },
+  "balance": {
+   "range": [
+    0.0,
+    1.0
+   ],
+   "seg": [
+    8.0,
+    45.0
+   ],
+   "rand": [
+    0.4,
+    0.3
+   ]
+  }
+ },
+ {
+  "name": "stretch1",
+  "description": "the input file dragged across one minute",
+  "duration": 60.0,
+  "stretch": true,
+  "spread": 0.4,
+  "voices": 2,
+  "position": {
+   "range": [
+    0.0,
+    0.02
+   ],
+   "seg": [
+    2.0,
+    10.0
+   ],
+   "rand": [
+    0.8,
+    0.4
+   ]
+  },
+  "density": {
+   "range": [
+    120.0,
+    900.0
+   ],
+   "seg": [
+    3.0,
+    15.0
+   ],
+   "rand": [
+    1.0,
+    0.1
+   ]
+  },
+  "length": {
+   "range": [
+    0.03,
+    0.1
+   ],
+   "seg": [
+    5.0,
+    20.0
+   ],
+   "rand": [
+    0.5,
+    0.1
+   ]
+  },
+  "attack": {
+   "range": [
+    0.3,
+    0.5
+   ],
+   "seg": [
+    5.0,
+    20.0
+   ],
+   "rand": [
+    0.3,
+    0.05
+   ]
+  },
+  "transpose": {
+   "range": [
+    -5.0,
+    5.0
+   ],
+   "seg": [
+    6.0,
+    25.0
+   ],
+   "rand": [
+    0.3,
+    0.1
+   ]
+  },
+  "balance": {
+   "range": [
+    0.2,
+    0.8
+   ],
+   "seg": [
+    3.0,
+    15.0
+   ],
+   "rand": [
+    0.5,
+    0.25
+   ]
+  }
+ },
+ {
+  "name": "stretch5",
+  "description": "the input file dragged across five minutes",
+  "duration": 300.0,
+  "stretch": true,
+  "spread": 0.4,
+  "voices": 2,
+  "position": {
+   "range": [
+    0.0,
+    0.01
+   ],
+   "seg": [
+    4.0,
+    20.0
+   ],
+   "rand": [
+    0.6,
+    0.4
+   ]
+  },
+  "density": {
+   "range": [
+    150.0,
+    1200.0
+   ],
+   "seg": [
+    6.0,
+    30.0
+   ],
+   "rand": [
+    0.8,
+    0.1
+   ]
+  },
+  "length": {
+   "range": [
+    0.04,
+    0.1
+   ],
+   "seg": [
+    8.0,
+    40.0
+   ],
+   "rand": [
+    0.4,
+    0.1
+   ]
+  },
+  "attack": {
+   "range": [
+    0.3,
+    0.5
+   ],
+   "seg": [
+    8.0,
+    40.0
+   ],
+   "rand": [
+    0.2,
+    0.05
+   ]
+  },
+  "transpose": {
+   "range": [
+    -3.0,
+    3.0
+   ],
+   "seg": [
+    10.0,
+    45.0
+   ],
+   "rand": [
+    0.2,
+    0.1
+   ]
+  },
+  "balance": {
+   "range": [
+    0.2,
+    0.8
+   ],
+   "seg": [
+    6.0,
+    30.0
+   ],
+   "rand": [
+    0.4,
+    0.25
+   ]
+  }
+ }
+]

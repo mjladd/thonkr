@@ -1,0 +1,116 @@
+name: release
+
+on:
+  push:
+    tags: ["v*"]
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: The tag to build, for a dry run
+        required: true
+
+env:
+  CARGO_TERM_COLOR: always
+
+jobs:
+  build:
+    name: ${{ matrix.target }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - target: aarch64-apple-darwin
+            os: macos-latest
+          - target: x86_64-apple-darwin
+            os: macos-latest
+          # Statically linked, so one binary runs on any distribution whatever
+          # its glibc version.
+          - target: x86_64-unknown-linux-musl
+            os: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install the Rust toolchain
+        run: rustup toolchain install stable --profile minimal --target ${{ matrix.target }}
+
+      - uses: Swatinem/rust-cache@v2
+        with:
+          key: ${{ matrix.target }}
+
+      - name: Install the musl linker
+        if: endsWith(matrix.target, '-musl')
+        run: sudo apt-get update && sudo apt-get install -y musl-tools
+
+      - name: Build
+        run: cargo build --release --locked --target ${{ matrix.target }}
+
+      - name: Assemble the archive
+        shell: bash
+        run: |
+          set -eu
+          version="${GITHUB_REF_NAME#v}"
+          if [ -z "${version}" ] || [ "${version}" = "${GITHUB_REF_NAME}" ]; then
+            version="${{ inputs.tag }}"
+            version="${version#v}"
+          fi
+          name="thonkr-${version}-${{ matrix.target }}"
+          mkdir -p "dist/${name}"
+          cp "target/${{ matrix.target }}/release/thonkr" "dist/${name}/"
+          strip "dist/${name}/thonkr" || true
+          cp README.md LICENSE "dist/${name}/"
+          cp -R scores "dist/${name}/scores"
+          tar -czf "dist/${name}.tar.gz" -C dist "${name}"
+          echo "ARCHIVE=dist/${name}.tar.gz" >> "$GITHUB_ENV"
+
+      - name: Check that the binary runs
+        if: matrix.target != 'x86_64-apple-darwin'
+        run: |
+          ./target/${{ matrix.target }}/release/thonkr --version
+          ./target/${{ matrix.target }}/release/thonkr --list-scores
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.target }}
+          path: ${{ env.ARCHIVE }}
+          if-no-files-found: error
+
+  publish:
+    name: attach to the release
+    needs: build
+    runs-on: ubuntu-latest
+    if: startsWith(github.ref, 'refs/tags/')
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          path: dist
+          merge-multiple: true
+
+      - name: Write the checksums
+        run: |
+          cd dist
+          sha256sum *.tar.gz > SHA256SUMS
+          cat SHA256SUMS
+
+      - uses: softprops/action-gh-release@v2
+        with:
+          files: |
+            dist/*.tar.gz
+            dist/SHA256SUMS
+          generate_release_notes: true
+          body: |
+            ## Installing
+
+            Download the archive for your machine, unpack it, and put `thonkr`
+            somewhere on your PATH. The `scores` directory beside it holds the
+            extra scores.
+
+            macOS refuses to open a binary that arrived from the internet and
+            is not signed. Clear the quarantine flag first:
+
+                xattr -d com.apple.quarantine thonkr
+
+            Check a download against `SHA256SUMS` with `sha256sum -c`.

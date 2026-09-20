@@ -1,0 +1,109 @@
+{
+ "measurements": {
+  "flowing.centroid_hz": {
+   "python": 3434.7230248863834,
+   "rust": 3917.1526804103473
+  },
+  "flowing.grains_per_sec": {
+   "python": 125.55185185185188,
+   "rust": 128.99351851851853
+  },
+  "flowing.peak_db": {
+   "python": -0.0030052159339435873,
+   "rust": -0.0045559128082232805
+  },
+  "flowing.rms_db": {
+   "python": -20.229016397582097,
+   "rust": -19.31823272553349
+  },
+  "flowing.silent_fraction": {
+   "python": 0.03413660031914,
+   "rust": 0.029178340471991266
+  },
+  "hectic.centroid_hz": {
+   "python": 4392.49147280862,
+   "rust": 4294.189388239418
+  },
+  "hectic.grains_per_sec": {
+   "python": 3072.296296296296,
+   "rust": 2964.235185185185
+  },
+  "hectic.peak_db": {
+   "python": 0.0,
+   "rust": 0.0
+  },
+  "hectic.rms_db": {
+   "python": -9.238072825311866,
+   "rust": -9.393395965533783
+  },
+  "hectic.silent_fraction": {
+   "python": 0.006176114890400605,
+   "rust": 0.00793776769967246
+  },
+  "sparse.centroid_hz": {
+   "python": 2592.7091507521745,
+   "rust": 2930.05074723158
+  },
+  "sparse.grains_per_sec": {
+   "python": 13.149074074074074,
+   "rust": 12.196296296296296
+  },
+  "sparse.peak_db": {
+   "python": -0.11144912779328175,
+   "rust": -0.6492662001662337
+  },
+  "sparse.rms_db": {
+   "python": -27.085031702599313,
+   "rust": -30.01781073178435
+  },
+  "sparse.silent_fraction": {
+   "python": 0.27529990761736794,
+   "rust": 0.3011152683295541
+  },
+  "stretch1.centroid_hz": {
+   "python": 3990.3273017313873,
+   "rust": 3906.2230548818457
+  },
+  "stretch1.grains_per_sec": {
+   "python": 508.34999999999997,
+   "rust": 499.19629629629634
+  },
+  "stretch1.peak_db": {
+   "python": 0.0,
+   "rust": 0.0
+  },
+  "stretch1.rms_db": {
+   "python": -12.529649391849341,
+   "rust": -12.617511945533899
+  },
+  "stretch1.silent_fraction": {
+   "python": 0.006355379188712522,
+   "rust": 0.0077445620223398
+  },
+  "stretch5.centroid_hz": {
+   "python": 4216.80002269913,
+   "rust": 4040.8897377191242
+  },
+  "stretch5.grains_per_sec": {
+   "python": 686.35,
+   "rust": 672.2722222222222
+  },
+  "stretch5.peak_db": {
+   "python": 0.0,
+   "rust": 0.0
+  },
+  "stretch5.rms_db": {
+   "python": -11.242006076666405,
+   "rust": -11.551981829086593
+  },
+  "stretch5.silent_fraction": {
+   "python": 0.004540648358108675,
+   "rust": 0.003693121693121693
+  }
+ },
+ "note": "measured by tests/parity/parity.py; a later change here at the same settings means one of the two implementations moved",
+ "settings": {
+  "duration": 180.0,
+  "seeds": 6
+ }
+}

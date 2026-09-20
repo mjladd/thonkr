@@ -1,0 +1,21 @@
+# Thick and low. Long grains transposed a long way down, dense enough to lose
+# the individual grains and hear one moving mass. Use --autogain: this one
+# stacks up fast.
+#
+#   thonkr in.aiff out.aiff --score-file scores/rumble.toml --score rumble --autogain
+
+[scores.rumble]
+description = "thick and low, grains stacked into one moving mass"
+duration = 1200
+spread = 0.3
+voices = 4
+
+density   = { range = [40.0, 700.0],   seg = [5.0, 40.0],  rand = [0.8, 0.20] }
+length    = { range = [0.050, 0.100],  seg = [8.0, 45.0],  rand = [0.4, 0.15] }
+attack    = { range = [0.30, 0.50],    seg = [10.0, 50.0], rand = [0.3, 0.10] }
+# A narrow window on the input, so the mass stays on one sound and moves slowly.
+position  = { range = [0.0, 0.35],     seg = [15.0, 70.0], rand = [0.3, 0.06] }
+# Three octaves down at the bottom, one at the top.
+transpose = { range = [-36.0, -12.0],  seg = [12.0, 60.0], rand = [0.25, 0.10] }
+# Held near the middle. Spread does the widening, not the curve.
+balance   = { range = [0.25, 0.75],    seg = [6.0, 35.0],  rand = [0.5, 0.15] }

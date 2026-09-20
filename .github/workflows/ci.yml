@@ -1,0 +1,65 @@
+name: ci
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+env:
+  CARGO_TERM_COLOR: always
+  RUSTFLAGS: -D warnings
+
+jobs:
+  test:
+    name: format, lint and test
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install the Rust toolchain
+        run: rustup toolchain install stable --profile minimal --component rustfmt,clippy
+
+      - uses: Swatinem/rust-cache@v2
+
+      - name: Check the formatting
+        run: cargo fmt --all --check
+
+      - name: Lint
+        run: cargo clippy --all-targets -- -D warnings
+
+      # The test fixtures are committed, so this needs no Python.
+      - name: Test
+        run: cargo test --all-targets
+
+      - name: Build the release binary
+        run: cargo build --release
+
+  parity:
+    name: parity against thonk.py
+    runs-on: ubuntu-latest
+    # The tolerances are statistical, so a failure here is a signal to look at
+    # rather than a reason to block a merge.
+    continue-on-error: true
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install the Rust toolchain
+        run: rustup toolchain install stable --profile minimal
+
+      - uses: Swatinem/rust-cache@v2
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install numpy
+        run: python -m pip install --quiet numpy
+
+      - name: Make sure the committed fixtures still match thonk.py
+        run: |
+          python tests/make_fixtures.py
+          git diff --exit-code -- tests/fixtures
+
+      - name: Compare the two implementations
+        run: tests/parity/parity.sh --seeds 6 --duration 180 --verbose

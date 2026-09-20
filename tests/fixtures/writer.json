@@ -1,0 +1,53 @@
+[
+ {
+  "file": "w44100_600.aiff",
+  "rate": 44100,
+  "frames": 600,
+  "overflows": 688,
+  "size": 2454
+ },
+ {
+  "file": "w44100_600.wav",
+  "rate": 44100,
+  "frames": 600,
+  "overflows": 688,
+  "size": 2444
+ },
+ {
+  "file": "w22050_7.aiff",
+  "rate": 22050,
+  "frames": 7,
+  "overflows": 14,
+  "size": 82
+ },
+ {
+  "file": "w48000_0.aiff",
+  "rate": 48000,
+  "frames": 0,
+  "overflows": 0,
+  "size": 54
+ },
+ {
+  "file": "w8000_1000.wav",
+  "rate": 8000,
+  "frames": 1000,
+  "overflows": 976,
+  "size": 4044
+ },
+ {
+  "file": "crashed.aiff",
+  "rate": 44100,
+  "frames": 500,
+  "fixed": "fixed_crashed.aiff",
+  "size": 2054,
+  "fixed_frames": 500
+ },
+ {
+  "file": "crashed.wav",
+  "rate": 22050,
+  "frames": 321,
+  "fixed": "fixed_crashed.wav",
+  "size": 1328,
+  "fixed_frames": null
+ }
+]
