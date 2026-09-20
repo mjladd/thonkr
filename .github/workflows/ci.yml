@@ -54,7 +54,7 @@ jobs:
           while IFS= read -r file; do
             [ -n "$file" ] || continue
             case "$file" in
-              src/*|tests/*|Cargo.toml|Cargo.lock|thonk.py|.github/workflows/*)
+              src/*|tests/*|build.rs|Cargo.toml|Cargo.lock|archive/thonk.py|.github/workflows/*)
                 code=true ;;
               scores/*)
                 scores=true ;;

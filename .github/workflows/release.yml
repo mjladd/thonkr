@@ -60,6 +60,8 @@ jobs:
           cp "target/${{ matrix.target }}/release/thonkr" "dist/${name}/"
           strip "dist/${name}/thonkr" || true
           cp README.md LICENSE "dist/${name}/"
+          # Every score is already inside the binary. These are the sources,
+          # shipped as a starting point for writing your own.
           cp -R scores "dist/${name}/scores"
           tar -czf "dist/${name}.tar.gz" -C dist "${name}"
           echo "ARCHIVE=dist/${name}.tar.gz" >> "$GITHUB_ENV"

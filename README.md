@@ -14,8 +14,10 @@ part in choosing.
 
 Download the archive for your machine from the
 [releases page](https://github.com/mjladd/thonkr/releases), unpack it, and put
-`thonkr` somewhere on your PATH. The `scores` directory beside it holds the
-extra scores.
+`thonkr` somewhere on your PATH. That is the whole installation: every score
+is inside the binary, so there is nothing to keep beside it and nothing to
+clone. The `scores` directory in the archive is the source of those scores,
+kept there as a starting point for writing your own.
 
 macOS refuses to open a binary that arrived from the internet and is not
 signed. Clear the quarantine flag first:
@@ -72,7 +74,7 @@ program left truncated.
 
 ### Scores
 
-Five are built in.
+Eight are built in, and all eight live inside the binary.
 
 | Score | Character | Default length |
 | --- | --- | --- |
@@ -81,18 +83,18 @@ Five are built in.
 | `sparse` | isolated grains, wide silences | 20 min |
 | `stretch1` | the input dragged across one minute | 1 min |
 | `stretch5` | the input dragged across five minutes | 5 min |
-
-Three more ship in the `scores` directory, and are loaded with `--score-file`.
-
-| Score | Character |
-| --- | --- |
-| `glacial` | almost nothing, very slowly, everything falling |
-| `shimmer` | short bright grains, high and always moving |
-| `rumble` | thick and low, grains stacked into one moving mass |
+| `glacial` | almost nothing, very slowly, everything falling | 1 hour |
+| `shimmer` | short bright grains, high and always moving | 15 min |
+| `rumble` | thick and low, grains stacked into one moving mass | 20 min |
 
 ```sh
-thonkr in.aiff out.aiff --score-file scores/rumble.toml --score rumble --autogain
+thonkr in.aiff out.aiff --score rumble --autogain
 ```
+
+The first five are written in `src/score.rs`. The last three are `scores/`
+`glacial.toml`, `shimmer.toml` and `rumble.toml`, read into the binary when it
+is built, which is why they need no file at run time. Adding a `.toml` file to
+`scores/` and rebuilding adds a score the same way.
 
 ## Scores of your own
 
@@ -141,7 +143,16 @@ density = { range = [0.5, 20.0] }
 
 `--score-file` is repeatable, and a later file replaces an earlier score of the
 same name. Naming a built-in replaces that one, which is how you keep a
-favourite adjustment.
+favourite adjustment:
+
+```sh
+thonkr --dump-score rumble --set transpose.range=-24,0 > mine.toml
+thonkr in.aiff out.aiff --score-file mine.toml --score rumble
+```
+
+`--dump-score rumble` writes the table as `[scores.rumble]`, so leaving the
+name alone is what makes the file an adjustment to `rumble` rather than a new
+score.
 
 ### Changing one thing without a file
 
@@ -207,8 +218,8 @@ point.
 
 ## The Python version
 
-`thonk.py` is the reference implementation this was ported from, and it stays
-in the repository. It needs numpy. The two are compared by a harness that
+`archive/thonk.py` is the reference implementation this was ported from, and it
+stays in the repository. It needs numpy. The two are compared by a harness that
 renders every score through both and checks that they agree:
 
 ```sh
@@ -239,7 +250,7 @@ thOnk_0+2 was written by Arjen van der Schoot, with early help from Peter
 Bakker, and its interface was designed by =cw4t7abs (antiorp). The original was
 freeware. This reimplementation carries no code from it.
 
-`thonk.py` was written by
+`archive/thonk.py` was written by
 [Deep-Fried-Unicorn](https://github.com/Deep-Fried-Unicorn), and `thonkr` is a
 translation of that work into Rust. Reading the synthesis model out of a manual
 for software nobody can run any more, and getting it to sound right, is the

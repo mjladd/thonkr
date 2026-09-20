@@ -2,7 +2,7 @@
 //!
 //! Phase 1 parses and validates every argument, resolves what the run will do,
 //! and reports it. The render path arrives in phase 5 and the score files in
-//! phase 6. See `RUST_MIGRATION.md`.
+//! phase 6. See `archive/RUST_MIGRATION.md`.
 
 use std::io::Write;
 use std::path::{Path, PathBuf};
@@ -205,9 +205,10 @@ fn run(cli: &Cli) -> Result<(), String> {
                 );
             }
             println!();
-            println!("more scores ship in the scores directory beside this program:");
-            println!("  thonkr in.aiff out.aiff --score-file scores/example.toml --score NAME");
-            println!("start your own with: thonkr --dump-score flowing > my.toml");
+            println!("every score above is inside this program; nothing else is needed.");
+            println!("to write your own, start from one of them:");
+            println!("  thonkr --dump-score sparse > mine.toml");
+            println!("  thonkr in.aiff out.aiff --score-file mine.toml --score mine");
         }
         Mode::DumpScore(name) => {
             let catalog = catalog(cli)?;
