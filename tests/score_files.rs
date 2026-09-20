@@ -18,8 +18,9 @@ fn write(name: &str, text: &str) -> PathBuf {
     path
 }
 
-const GLACIAL: &str = r#"
-[scores.glacial]
+/// A score under a name nothing ships, so loading it adds rather than replaces.
+const CUSTOM: &str = r#"
+[scores.custom]
 description = "almost nothing, very slowly"
 duration = 3600
 spread = 0.6
@@ -37,17 +38,22 @@ balance   = { range = [0.0, 1.0],   seg = [10, 60],  rand = [0.3, 0.3] }
 // --------------------------------------------------------------------------
 
 #[test]
-fn a_score_file_adds_a_score_the_built_ins_do_not_have() {
-    let path = write("glacial.toml", GLACIAL);
+fn a_score_file_adds_a_score_that_is_not_already_there() {
+    let path = write("custom.toml", CUSTOM);
     let catalog = Catalog::load(std::slice::from_ref(&path)).unwrap();
 
-    assert_eq!(catalog.names().len(), 6, "five built-ins plus one");
-    let score = catalog.get("glacial").expect("glacial was loaded");
+    let base = Catalog::load(&[]).unwrap().names().len();
+    assert_eq!(
+        catalog.names().len(),
+        base + 1,
+        "the scores already there, plus one"
+    );
+    let score = catalog.get("custom").expect("custom was loaded");
     assert_eq!(score.description, "almost nothing, very slowly");
     assert_eq!(score.duration, 3600.0);
     assert_eq!(score.voices, 3);
     assert_eq!(score.density.range, [0.2, 4.0]);
-    assert_eq!(catalog.origin("glacial"), Some(&Origin::File(path)));
+    assert_eq!(catalog.origin("custom"), Some(&Origin::File(path)));
     assert!(score.problems().is_empty(), "{:?}", score.problems());
 }
 
@@ -77,9 +83,11 @@ fn a_file_can_replace_a_built_in_and_keeps_its_place_in_the_listing() {
     let path = write("override.toml", "[scores.hectic]\nduration = 60\n");
     let catalog = Catalog::load(std::slice::from_ref(&path)).unwrap();
 
+    let before = Catalog::load(&[]).unwrap();
     assert_eq!(
         catalog.names(),
-        vec!["flowing", "hectic", "sparse", "stretch1", "stretch5"]
+        before.names(),
+        "replacing a score must not add a name or move one"
     );
     let hectic = catalog.get("hectic").unwrap();
     assert_eq!(hectic.duration, 60.0, "the field that was overridden");
@@ -145,11 +153,63 @@ fn every_shipped_score_loads_and_is_usable() {
 
     // Loading them all at once must work too, which catches a name collision.
     let catalog = Catalog::load(&files).unwrap();
-    assert!(
-        catalog.names().len() >= 5 + files.len(),
-        "two shipped files define the same score name: {:?}",
-        catalog.names()
+    let names = catalog.names();
+    let distinct: std::collections::BTreeSet<_> = names.iter().collect();
+    assert_eq!(
+        names.len(),
+        distinct.len(),
+        "two scores share a name: {names:?}"
     );
+}
+
+/// The point of embedding: a binary on its own, with no files beside it,
+/// carries every score it lists.
+#[test]
+fn the_shipped_scores_are_inside_the_binary() {
+    let catalog = Catalog::load(&[]).unwrap();
+
+    for name in ["glacial", "shimmer", "rumble"] {
+        let score = catalog
+            .get(name)
+            .unwrap_or_else(|| panic!("{name} is not embedded; check build.rs"));
+        assert!(
+            score.problems().is_empty(),
+            "{name}: {:?}",
+            score.problems()
+        );
+        assert!(!score.description.is_empty(), "{name} has no description");
+        assert_eq!(
+            catalog.origin(name),
+            Some(&Origin::BuiltIn),
+            "an embedded score should look built in, not like a file"
+        );
+    }
+
+    // The worked example teaches the file format. It is not a score to ship,
+    // so build.rs leaves it out.
+    assert!(
+        catalog.get("example").is_none(),
+        "example.toml should not be embedded"
+    );
+
+    assert_eq!(catalog.names().len(), 8, "five written plus three embedded");
+}
+
+/// An embedded score is still just a score, so a file can replace it.
+#[test]
+fn a_file_can_override_an_embedded_score() {
+    let path = write("override_rumble.toml", "[scores.rumble]\nduration = 42\n");
+    let catalog = Catalog::load(std::slice::from_ref(&path)).unwrap();
+    let rumble = catalog.get("rumble").unwrap();
+
+    assert_eq!(rumble.duration, 42.0, "the field that was overridden");
+    assert_eq!(
+        rumble.transpose,
+        Catalog::load(&[]).unwrap().get("rumble").unwrap().transpose,
+        "an override builds on the embedded score, not on flowing"
+    );
+    assert_eq!(catalog.origin("rumble"), Some(&Origin::File(path)));
+    assert_eq!(catalog.names().len(), 8, "an override adds no new name");
 }
 
 #[test]
@@ -182,7 +242,7 @@ fn a_file_with_no_scores_in_it_says_so() {
 
 #[test]
 fn an_unknown_score_lists_what_there_is() {
-    let path = write("glacial2.toml", GLACIAL);
+    let path = write("custom2.toml", CUSTOM);
     let catalog = Catalog::load(&[path]).unwrap();
     let err = catalog.require("galcial").unwrap_err().to_string();
     assert!(err.contains("unknown score: galcial"), "{err}");

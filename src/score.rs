@@ -281,6 +281,11 @@ use std::path::{Path, PathBuf};
 
 use crate::{Error, Result};
 
+// The scores in `scores/`, embedded at build time by `build.rs`. They are
+// listed and used exactly like the five written in this file, so a downloaded
+// binary needs no files beside it. This defines SHIPPED.
+include!(concat!(env!("OUT_DIR"), "/shipped_scores.rs"));
+
 /// The name of the score every default is taken from.
 const DEFAULT_BASE: &str = "flowing";
 
@@ -367,7 +372,8 @@ pub struct Catalog {
 }
 
 impl Catalog {
-    /// Load the built-in scores, then each file in the order given.
+    /// Load the scores written in this file, then the ones embedded from
+    /// `scores/`, then each file named on the command line.
     ///
     /// A later definition replaces an earlier one of the same name, in place,
     /// so the listing order does not shift under an override.
@@ -378,6 +384,11 @@ impl Catalog {
                 .map(|(name, spec)| (name.to_string(), spec, Origin::BuiltIn))
                 .collect(),
         };
+        for (name, text) in SHIPPED {
+            // A score that ships inside the binary and does not parse is a
+            // fault in the build, and the test suite fails on it.
+            catalog.add_toml(text, Origin::BuiltIn, Path::new(name))?;
+        }
         for path in files {
             catalog.add_file(path)?;
         }
@@ -391,10 +402,19 @@ impl Catalog {
 
     fn add_file(&mut self, path: &Path) -> Result<()> {
         let text = std::fs::read_to_string(path).map_err(|e| Error::io(path, e))?;
+        self.add_toml(&text, Origin::File(path.to_path_buf()), path)
+    }
+
+    /// Add every score in one TOML document.
+    ///
+    /// `source` names the document in any error, and is the file path for a
+    /// score read from disk or just the file name for an embedded one.
+    fn add_toml(&mut self, text: &str, origin: Origin, source: &Path) -> Result<()> {
+        let path = source;
         // Parsed in two steps, so a file that forgot its [scores.NAME] header
         // is told what the shape is rather than which field is unexpected.
         let table: toml::Table =
-            toml::from_str(&text).map_err(|e| Error::format(path, e.message().to_string()))?;
+            toml::from_str(text).map_err(|e| Error::format(path, e.message().to_string()))?;
         if !table.contains_key("scores") {
             return Err(Error::format(
                 path,
@@ -418,7 +438,7 @@ impl Catalog {
                 .cloned()
                 .unwrap_or_else(|| built_in(DEFAULT_BASE).expect("flowing is defined"));
             let spec = raw.onto(base);
-            let origin = Origin::File(path.to_path_buf());
+            let origin = origin.clone();
             match self.entries.iter_mut().find(|(n, _, _)| *n == name) {
                 Some(entry) => {
                     entry.1 = spec;

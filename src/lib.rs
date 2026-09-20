@@ -5,7 +5,7 @@
 //! no control at all. This crate rebuilds the synthesis model from the
 //! description in that manual. It carries no code from the original.
 //!
-//! See `RUST_MIGRATION.md` for the port plan and the phase each module belongs
+//! See `archive/RUST_MIGRATION.md` for the port plan and the phase each module belongs
 //! to.
 
 pub mod audio;

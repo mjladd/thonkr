@@ -29,7 +29,7 @@ import tempfile
 import numpy as np
 
 ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-sys.path.insert(0, ROOT)
+sys.path.insert(0, os.path.join(ROOT, "archive"))
 
 BASELINE_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), "baseline.json")
 
@@ -103,7 +103,7 @@ def render_rust(binary, src, out, score, duration, seed):
 
 def render_python(src, out, score, duration, seed):
     result = subprocess.run(
-        [sys.executable, os.path.join(ROOT, "thonk.py"), src, out,
+        [sys.executable, os.path.join(ROOT, "archive", "thonk.py"), src, out,
          "--score", score, "--duration", str(duration), "--seed", str(seed)],
         cwd=ROOT, check=True, capture_output=True, text=True)
     return grains_from(result.stdout, "python")
