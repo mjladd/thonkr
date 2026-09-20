@@ -11,11 +11,81 @@ env:
   RUSTFLAGS: -D warnings
 
 jobs:
+  changes:
+    name: what changed
+    runs-on: ubuntu-latest
+    outputs:
+      code: ${{ steps.what.outputs.code }}
+      scores: ${{ steps.what.outputs.scores }}
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+
+      - name: Work out what was touched
+        id: what
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          case "${{ github.event_name }}" in
+            pull_request) base="${{ github.event.pull_request.base.sha }}" ;;
+            push)         base="${{ github.event.before }}" ;;
+            *)            base="" ;;
+          esac
+
+          # Anything we cannot work out runs the full build. A wasted run costs
+          # four minutes; a skipped one can ship a binary nobody compiled.
+          if [ -z "$base" ] \
+             || [ "$base" = "0000000000000000000000000000000000000000" ] \
+             || ! git cat-file -e "${base}^{commit}" 2>/dev/null; then
+            echo "cannot tell what changed, so running everything"
+            echo "code=true" >> "$GITHUB_OUTPUT"
+            echo "scores=true" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          changed=$(git diff --name-only "$base" HEAD)
+          echo "changed files:"
+          echo "$changed" | sed 's/^/  /'
+
+          code=false
+          scores=false
+          while IFS= read -r file; do
+            [ -n "$file" ] || continue
+            case "$file" in
+              src/*|tests/*|Cargo.toml|Cargo.lock|thonk.py|.github/workflows/*)
+                code=true ;;
+              scores/*)
+                scores=true ;;
+            esac
+          done <<< "$changed"
+
+          echo "code=$code" >> "$GITHUB_OUTPUT"
+          echo "scores=$scores" >> "$GITHUB_OUTPUT"
+
+          {
+            echo "### What changed"
+            echo
+            if [ "$code" = true ]; then
+              echo "- code: the full build runs"
+            elif [ "$scores" = true ]; then
+              echo "- scores only: the tests run, the release build and the parity job do not"
+            else
+              echo "- documentation only: nothing is built"
+            fi
+          } >> "$GITHUB_STEP_SUMMARY"
+
   test:
     name: format, lint and test
+    needs: changes
+    # A score file is not documentation. tests/score_files.rs loads every file
+    # in scores/ and validates it, and those files ship inside the release
+    # archive, so a broken one has to fail here.
+    if: needs.changes.outputs.code == 'true' || needs.changes.outputs.scores == 'true'
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
       - name: Install the Rust toolchain
         run: rustup toolchain install stable --profile minimal --component rustfmt,clippy
@@ -33,23 +103,28 @@ jobs:
         run: cargo test --all-targets
 
       - name: Build the release binary
+        if: needs.changes.outputs.code == 'true'
         run: cargo build --release
 
   parity:
     name: parity against thonk.py
+    needs: changes
+    # Only the engine can move the two implementations apart. A score file
+    # cannot, because the harness compares the built-in scores.
+    if: needs.changes.outputs.code == 'true'
     runs-on: ubuntu-latest
     # The tolerances are statistical, so a failure here is a signal to look at
     # rather than a reason to block a merge.
     continue-on-error: true
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
       - name: Install the Rust toolchain
         run: rustup toolchain install stable --profile minimal
 
       - uses: Swatinem/rust-cache@v2
 
-      - uses: actions/setup-python@v5
+      - uses: actions/setup-python@v7
         with:
           python-version: "3.12"
 
@@ -63,3 +138,28 @@ jobs:
 
       - name: Compare the two implementations
         run: tests/parity/parity.sh --seeds 6 --duration 180 --verbose
+
+  ci:
+    # One check that is always reported, whatever the jobs above did. A branch
+    # protection rule should require this one, because a rule that names a job
+    # directly blocks every pull request that skips it.
+    name: ci
+    needs: [changes, test, parity]
+    if: always()
+    runs-on: ubuntu-latest
+    steps:
+      - name: Report the result
+        shell: bash
+        run: |
+          echo "changes: ${{ needs.changes.result }}"
+          echo "test:    ${{ needs.test.result }}"
+          echo "parity:  ${{ needs.parity.result }}"
+          # A skipped job is a pass: it means nothing it covers was touched.
+          # The parity job carries continue-on-error, so it never fails here.
+          for result in "${{ needs.changes.result }}" "${{ needs.test.result }}"; do
+            case "$result" in
+              success|skipped) ;;
+              *) echo "::error::a required job reported $result"; exit 1 ;;
+            esac
+          done
+          echo "ok"
