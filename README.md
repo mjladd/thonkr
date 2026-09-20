@@ -26,7 +26,7 @@ signed. Clear the quarantine flag first:
 xattr -d com.apple.quarantine thonkr
 ```
 
-To build it yourself, with Rust 1.80 or later:
+To build it yourself, with Rust 1.85 or later:
 
 ```sh
 cargo build --release      # -> target/release/thonkr

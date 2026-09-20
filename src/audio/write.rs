@@ -14,6 +14,16 @@ use crate::{Error, Result};
 /// Bytes per output frame: two channels of 16-bit samples.
 const FRAME_BYTES: u64 = 4;
 
+/// The most frames a sound file can describe.
+///
+/// AIFF and WAV both hold their chunk sizes in 32 bits. The AIFF header is the
+/// larger of the two, at 46 bytes before the samples, so it sets the limit for
+/// both. Past this the size fields wrap, and a player reads part of the file
+/// and stops, with nothing anywhere to say that it did.
+///
+/// At 44100 Hz this is a little under seven hours.
+pub const MAX_FRAMES: u64 = ((u32::MAX as u64) - 46) / FRAME_BYTES;
+
 pub struct StreamWriter {
     out: BufWriter<File>,
     path: PathBuf,
@@ -69,6 +79,15 @@ impl StreamWriter {
     /// expensive at 600 layers. Wrapping is reproduced here. `--overflow clip`
     /// is applied by the caller, before this point.
     pub fn write(&mut self, block: &[[f32; 2]]) -> Result<u64> {
+        // Refused rather than wrapped. Everything written so far stays valid,
+        // because the header describes the frames that reached the file.
+        if self.frames + block.len() as u64 > MAX_FRAMES {
+            return Err(Error::other(format!(
+                "{}: a sound file cannot hold more than {MAX_FRAMES} frames, \
+                 because AIFF and WAV store their sizes in 32 bits",
+                self.path.display()
+            )));
+        }
         let mut over = 0u64;
         let mut bytes = Vec::with_capacity(block.len() * FRAME_BYTES as usize);
         for frame in block {
@@ -305,10 +324,8 @@ mod tests {
         let bytes = std::fs::read(&path).unwrap();
         let pcm = &bytes[54..];
         let got: Vec<i16> = pcm
-            .as_chunks::<2>()
-            .0
-            .iter()
-            .map(|b| i16::from_be_bytes(*b))
+            .chunks_exact(2)
+            .map(|c| i16::from_be_bytes([c[0], c[1]]))
             .collect();
         assert_eq!(
             got,
@@ -352,6 +369,36 @@ mod tests {
     }
 
     #[test]
+    fn the_writer_refuses_to_pass_the_thirty_two_bit_limit() {
+        let dir = tempdir();
+        let path = dir.join("limit.aiff");
+        let mut w = StreamWriter::create(&path, 44100).unwrap();
+
+        // Pretend almost the whole file has been written already.
+        w.frames = MAX_FRAMES - 2;
+        assert!(w.write(&[[0.1, 0.1]; 2]).is_ok(), "the last two frames fit");
+        assert_eq!(w.frames, MAX_FRAMES);
+
+        let err = w.write(&[[0.1, 0.1]]).unwrap_err().to_string();
+        assert!(err.contains("cannot hold more than"), "{err}");
+        assert_eq!(w.frames, MAX_FRAMES, "a refused write adds nothing");
+
+        // The header still describes what actually reached the file, so it is
+        // not the wrapped nonsense a silent overflow would leave.
+        let header = w.header_bytes();
+        let form = u32::from_be_bytes([header[4], header[5], header[6], header[7]]);
+        assert_eq!(u64::from(form), 46 + MAX_FRAMES * 4);
+        w.finished = true; // the frame count is a fiction; do not flush it
+    }
+
+    #[test]
+    fn the_limit_is_where_a_thirty_two_bit_field_runs_out() {
+        // 46 bytes of AIFF header plus the samples must fit in a u32.
+        assert!(46 + MAX_FRAMES * FRAME_BYTES <= u64::from(u32::MAX));
+        assert!(46 + (MAX_FRAMES + 1) * FRAME_BYTES > u64::from(u32::MAX));
+    }
+
+    #[test]
     fn a_non_finite_sample_is_written_as_silence() {
         let dir = tempdir();
         let path = dir.join("nan.wav");
@@ -361,10 +408,8 @@ mod tests {
         w.close().unwrap();
         let bytes = std::fs::read(&path).unwrap();
         let got: Vec<i16> = bytes[44..]
-            .as_chunks::<2>()
-            .0
-            .iter()
-            .map(|b| i16::from_le_bytes(*b))
+            .chunks_exact(2)
+            .map(|c| i16::from_le_bytes([c[0], c[1]]))
             .collect();
         assert_eq!(got, vec![0, 0, 0, 16384]);
     }

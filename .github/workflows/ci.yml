@@ -106,6 +106,34 @@ jobs:
         if: needs.changes.outputs.code == 'true'
         run: cargo build --release
 
+  msrv:
+    name: build on the oldest supported Rust
+    needs: changes
+    if: needs.changes.outputs.code == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Read the version Cargo.toml claims
+        id: msrv
+        run: |
+          version=$(grep -m1 '^rust-version' Cargo.toml | cut -d'"' -f2)
+          echo "version=$version" >> "$GITHUB_OUTPUT"
+          echo "Cargo.toml claims $version"
+
+      - name: Install it
+        run: rustup toolchain install ${{ steps.msrv.outputs.version }} --profile minimal
+
+      - uses: Swatinem/rust-cache@v2
+        with:
+          key: msrv
+
+      # Nothing else stops the floor rising again by accident. It rose once
+      # already, when a clippy suggestion swapped in a newer standard library
+      # call.
+      - name: Build and test on it
+        run: cargo +${{ steps.msrv.outputs.version }} test --all-targets
+
   parity:
     name: parity against thonk.py
     needs: changes
@@ -144,7 +172,7 @@ jobs:
     # protection rule should require this one, because a rule that names a job
     # directly blocks every pull request that skips it.
     name: ci
-    needs: [changes, test, parity]
+    needs: [changes, test, msrv, parity]
     if: always()
     runs-on: ubuntu-latest
     steps:
@@ -153,10 +181,12 @@ jobs:
         run: |
           echo "changes: ${{ needs.changes.result }}"
           echo "test:    ${{ needs.test.result }}"
+          echo "msrv:    ${{ needs.msrv.result }}"
           echo "parity:  ${{ needs.parity.result }}"
           # A skipped job is a pass: it means nothing it covers was touched.
           # The parity job carries continue-on-error, so it never fails here.
-          for result in "${{ needs.changes.result }}" "${{ needs.test.result }}"; do
+          for result in "${{ needs.changes.result }}" "${{ needs.test.result }}" \
+                        "${{ needs.msrv.result }}"; do
             case "$result" in
               success|skipped) ;;
               *) echo "::error::a required job reported $result"; exit 1 ;;
