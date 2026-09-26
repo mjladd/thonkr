@@ -73,11 +73,22 @@ pub struct Cli {
 
     /// Override one field of the active score, as KEY=VALUE. Repeatable.
     ///
-    /// Curve parameters (position, density, length, attack, transpose,
-    /// balance) take KEY.range=LO,HI, KEY.seg=LO,HI or KEY.rand=RATE,DEPTH.
-    /// Whole-score keys are duration, spread, voices and stretch; duration
-    /// and spread also have their own flag above, voices and stretch do
-    /// not.
+    /// Curve parameters take KEY.range=LO,HI, KEY.seg=LO,HI or
+    /// KEY.rand=RATE,DEPTH:
+    ///
+    ///   position   where in the input a grain is taken from, 0 to 1
+    ///   density    grains written per second, up to 6000
+    ///   length     grain length in seconds, at most 1.0
+    ///   attack     the faded portion at each end of a grain, 0 to 0.5
+    ///   transpose  transposition in semitones; negative is down
+    ///   balance    left to right placement, 0 to 1; 0.5 is the middle
+    ///
+    /// Whole-score keys take KEY=VALUE:
+    ///
+    ///   duration   output length in seconds (also --duration)
+    ///   spread     per-grain stereo scatter, 0 to 1 (also --spread)
+    ///   voices     how many voices the transposer runs, 1 to 16
+    ///   stretch    true walks the input start to end across the render
     #[arg(long = "set", value_name = "KEY=VALUE", verbatim_doc_comment)]
     pub set: Vec<String>,
 
