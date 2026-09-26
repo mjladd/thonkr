@@ -72,6 +72,17 @@ program left truncated.
 | `--list-scores` | list the scores and exit |
 | `--fix FILE` | repair the header of a truncated file and exit |
 
+`--duration` and `--spread` are shortcuts: they override the active score's
+field of the same name for this run, without editing the score. Two other
+score fields, `voices` and `stretch`, have no such shortcut; reach them with
+`--set voices=...` or `--set stretch=...` below.
+
+`--list-scores` only lists what's already loaded for that run: the built-in
+scores plus anything named with `--score-file` on the same command line. A
+new `.toml` file sitting in a `scores/` directory does not show up on its
+own — pass it with `--score-file` to load it for one run, or add it to the
+project's own `scores/` and rebuild to embed it permanently (see below).
+
 ### Scores
 
 Eight are built in, and all eight live inside the binary.
@@ -163,7 +174,10 @@ thonkr in.aiff out.aiff --set density.range=1,400 --set spread=0.6
 `--set` is repeatable and applies to whichever score is active. The keys are
 `<parameter>.range`, `<parameter>.seg` and `<parameter>.rand` for each of
 `position`, `density`, `length`, `attack`, `transpose` and `balance`, plus
-`duration`, `spread`, `voices` and `stretch`.
+`duration`, `spread`, `voices` and `stretch`. `duration` and `spread` can
+also be set with their own top-level flag (`--duration`, `--spread`);
+`voices` and `stretch` cannot, so `--set` is the only way to reach them from
+the command line.
 
 It applies to `--dump-score` as well, so a change that sounds right can be
 saved straight to a file:
