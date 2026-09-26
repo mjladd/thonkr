@@ -72,12 +72,23 @@ pub struct Cli {
     pub score_file: Vec<PathBuf>,
 
     /// Override one field of the active score, as KEY=VALUE. Repeatable.
-    /// The only way to reach `voices` and `stretch`, which have no flag of their own.
-    #[arg(long = "set", value_name = "KEY=VALUE")]
+    ///
+    /// Curve parameters (position, density, length, attack, transpose,
+    /// balance) take KEY.range=LO,HI, KEY.seg=LO,HI or KEY.rand=RATE,DEPTH.
+    /// Whole-score keys are duration, spread, voices and stretch; duration
+    /// and spread also have their own flag above, voices and stretch do
+    /// not.
+    #[arg(long = "set", value_name = "KEY=VALUE", verbatim_doc_comment)]
     pub set: Vec<String>,
 
     /// List the scores and exit.
-    #[arg(long = "list-scores")]
+    ///
+    /// Only what's built in, plus any score named with --score-file on
+    /// this same command line. A file dropped into a scores/ directory
+    /// does not appear on its own; pass it with --score-file to load it,
+    /// or rebuild with it in the project's own scores/ to embed it
+    /// permanently.
+    #[arg(long = "list-scores", verbatim_doc_comment)]
     pub list_scores: bool,
 
     /// Print one score as TOML and exit.
@@ -403,7 +414,7 @@ fn restore_default_sigpipe() {
 #[cfg(test)]
 mod tests {
     use super::{Cli, Mode, Overflow};
-    use clap::Parser;
+    use clap::{CommandFactory, Parser};
 
     fn parse(args: &[&str]) -> Cli {
         Cli::parse_from(std::iter::once("thonkr").chain(args.iter().copied()))
@@ -463,6 +474,26 @@ mod tests {
         ]);
         assert_eq!(cli.score_file.len(), 2);
         assert_eq!(cli.set, vec!["density.range=1,400", "spread=0.6"]);
+    }
+
+    /// Keeps the --set help text honest if score.rs ever adds or renames a key.
+    #[test]
+    fn the_set_help_text_lists_every_accepted_key() {
+        let command = Cli::command();
+        let set_arg = command
+            .get_arguments()
+            .find(|a| a.get_long() == Some("set"))
+            .expect("--set is a defined argument");
+        let help = set_arg
+            .get_long_help()
+            .expect("--set has long help text")
+            .to_string();
+        for key in super::score::PARAM_KEYS {
+            assert!(help.contains(key), "--set help omits parameter {key}");
+        }
+        for key in super::score::SCORE_KEYS {
+            assert!(help.contains(key), "--set help omits whole-score key {key}");
+        }
     }
 
     #[test]

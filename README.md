@@ -77,6 +77,12 @@ field of the same name for this run, without editing the score. Two other
 score fields, `voices` and `stretch`, have no such shortcut; reach them with
 `--set voices=...` or `--set stretch=...` below.
 
+`--list-scores` only lists what's already loaded for that run: the built-in
+scores plus anything named with `--score-file` on the same command line. A
+new `.toml` file sitting in a `scores/` directory does not show up on its
+own — pass it with `--score-file` to load it for one run, or add it to the
+project's own `scores/` and rebuild to embed it permanently (see below).
+
 ### Scores
 
 Eight are built in, and all eight live inside the binary.

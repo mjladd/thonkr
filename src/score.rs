@@ -486,7 +486,7 @@ impl Catalog {
 // --------------------------------------------------------------------------
 
 /// The parameter names `--set` accepts.
-const PARAM_KEYS: [&str; 6] = [
+pub const PARAM_KEYS: [&str; 6] = [
     "position",
     "density",
     "length",
@@ -499,7 +499,7 @@ const PARAM_KEYS: [&str; 6] = [
 const PARAM_FIELDS: [&str; 3] = ["range", "seg", "rand"];
 
 /// The whole-score keys `--set` accepts.
-const SCORE_KEYS: [&str; 4] = ["duration", "spread", "voices", "stretch"];
+pub const SCORE_KEYS: [&str; 4] = ["duration", "spread", "voices", "stretch"];
 
 /// Apply one `KEY=VALUE` override to a score.
 ///
