@@ -72,6 +72,7 @@ pub struct Cli {
     pub score_file: Vec<PathBuf>,
 
     /// Override one field of the active score, as KEY=VALUE. Repeatable.
+    /// The only way to reach `voices` and `stretch`, which have no flag of their own.
     #[arg(long = "set", value_name = "KEY=VALUE")]
     pub set: Vec<String>,
 
