@@ -1,6 +1,6 @@
 [package]
 name = "thonkr"
-version = "0.1.1"
+version = "0.1.2"
 edition = "2021"
 # The floor the dependencies set. Cargo reports a clear message below it, and
 # clippy reads this too, so it stops suggesting newer standard library calls.
